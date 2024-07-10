@@ -5,8 +5,11 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "build": "echo 'No build script defined' && exit 0",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js",
+    "build": "echo 'No build step required for this project' && exit 0",
+    "test": "echo 'No tests specified' && exit 0",
+    "build:example:webapp": "echo 'Build example webapp script'",
+    "semantic-release": "semantic-release"
   },
   "keywords": [],
   "author": "",
@@ -20,5 +23,9 @@
     "fs": "^0.0.1-security",
     "mongoose": "^8.4.5",
     "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "semantic-release": "^19.0.3"
   }
 }

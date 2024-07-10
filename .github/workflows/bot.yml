@@ -1,33 +1,53 @@
-name: Discord Bot Deployment
+name: Discord Bot CI/CD
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'  # Specify your Node.js version here
+          node-version: '16'
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Bot (if needed)
-        run: npm run build  # Adjust this according to your bot setup
-
-      - name: Deploy Bot
-        run: |
-          npm start  # Or whatever command starts your bot
+      - name: Cache node modules
+        uses: actions/cache@v3
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}  # Ensure BOT_TOKEN is set in your GitHub secrets
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}  # Example for MongoDB URI
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build example webapp
+        run: npm run build:example:webapp
+
+      - name: Register commands
+        run: node register-commands.js
+        env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
-      # Add more steps as needed, such as tests, linting, etc.
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: Start bot
+        run: npm start
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
