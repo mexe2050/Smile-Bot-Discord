@@ -1,54 +1,44 @@
-name: Deploy static webapp to Pages
+name: Deploy static webapp to GitHub Pages
 
 on:
-  # Runs on pushes targeting the master branch
   push:
-    branches:
-      - master
+    branches: ["main"]
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'  # Adjust Node.js version as per your project requirements
+          node-version: '16'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm ci  # Use npm ci for a clean install based on package-lock.json
+        run: npm ci
 
-      - name: Build webapp
-        run: npm run build:example:webapp  # Adjust as per your build command
+      - name: Build example webapp
+        run: npm run build:example:webapp
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-pages-artifact@v1
         with:
-          # Upload entire repository
           path: './example/webapp/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
-        with:
-          # GitHub Pages deployment configuration
-          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
-          artifact: ./example/webapp/dist  # Path to the artifact to deploy

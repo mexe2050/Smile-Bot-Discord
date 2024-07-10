@@ -3,6 +3,8 @@ name: Build and test
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   buildAndTest:
@@ -16,33 +18,27 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        node-version: [16.20.2]  # Specify your Node.js version here
+        node-version: [16.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       
       - name: Install dependencies
-        run: npm ci  # Use npm ci for a clean install based on package-lock.json
+        run: npm ci
       
       - name: Run tests
-        run: npm test  # Adjust as per your test command
+        run: npm test
       
       - name: Build application
-        run: npm run build  # Adjust as per your build command
+        run: npm run build
       
       - name: Semantic release
-        run: npm run semantic-release  # Adjust as per your release command
+        run: npm run semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # Ensure this secret is configured in your GitHub repository secrets
-
-      # Uncomment the following lines if you're planning to publish npm packages
-      # - name: Publish to npm
-      #   run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_SECRET_TOKEN }}  # Ensure this secret is configured in your GitHub repository secrets
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
