@@ -3,7 +3,7 @@ name: Discord Bot
 on:
   push:
     branches:
-      - main  # Adjust this to your main branch name
+      - main  # Adjust this to your main branch name or your bot's deployment branch
 
 jobs:
   run:
@@ -12,6 +12,8 @@ jobs:
     env:
       NODE_ENV: production  # Set your Node.js environment
       MONGODB_URI: ${{ secrets.MONGODB_URI }}  # Use GitHub secret for MongoDB connection URI
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}  # Discord Bot Token secret
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}  # Discord Bot Client ID secret
 
     steps:
       - name: Checkout repository
@@ -25,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build
-        run: npm run build  # If your bot requires a build step
+      - name: Build (if applicable)
+        run: npm run build  # Replace with your build command if your bot requires it
 
       - name: Start Bot
         run: node index.js  # Replace with your bot's main file and command to start
