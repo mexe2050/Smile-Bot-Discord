@@ -18,6 +18,8 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
+        with:
+          enablement: true
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -32,7 +34,7 @@ jobs:
         run: npm run build:example:webapp
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: './example/webapp/dist'
 
