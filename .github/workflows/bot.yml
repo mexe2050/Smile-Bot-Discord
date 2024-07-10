@@ -22,18 +22,27 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk2.0-dev libjpeg-dev libpango1.0-dev libcairo2-dev libgif-dev librsvg2-dev
+          sudo apt-get install -y \
+            build-essential \
+            libcairo2-dev \
+            libpango1.0-dev \
+            libjpeg-dev \
+            libgif-dev \
+            librsvg2-dev
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'  # Update to Node.js version 18
+          node-version: '18'  # Use the Node.js version that is compatible with your dependencies
 
-      - name: Install dependencies
+      - name: Install Node.js dependencies
         run: npm install
 
+      - name: Rebuild canvas
+        run: npm rebuild canvas
+
       - name: Build (if applicable)
-        run: npm run build  # Use the build script
+        run: npm run build  # Use the build script if applicable
 
       - name: Start Bot
         run: npm start  # Use the start script
