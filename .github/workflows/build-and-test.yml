@@ -1,39 +1,48 @@
-
 name: Build and test
+
 on:
   push:
-    branches: [master]
+    branches: [main]
+
 jobs:
   buildAndTest:
     name: Build and test (Node.js v${{ matrix.node-version }})
     timeout-minutes: 15
     runs-on: ubuntu-latest
     permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for npm provenance
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [16.20.2]  # Specify your Node.js version here
     steps:
       - uses: actions/checkout@v2
-      - name: Install Node.js
+      
+      - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - name: Install install dependencies
-        run: npm ci
-      - name: test
-        run: npm test
-      - name: build
-        run: npm run build
-      - name: release new version
-        run: npm run semantic-release
+      
+      - name: Install dependencies
+        run: npm ci  # Use npm ci for a clean install based on package-lock.json
+      
+      - name: Run tests
+        run: npm test  # Adjust as per your test command
+      
+      - name: Build application
+        run: npm run build  # Adjust as per your build command
+      
+      - name: Semantic release
+        run: npm run semantic-release  # Adjust as per your release command
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      #- run: npm publish
-      #  env:
-      #    NODE_AUTH_TOKEN: ${{ secrets.NPM_SECRET_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # Ensure this secret is configured in your GitHub repository secrets
+
+      # Uncomment the following lines if you're planning to publish npm packages
+      # - name: Publish to npm
+      #   run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_SECRET_TOKEN }}  # Ensure this secret is configured in your GitHub repository secrets

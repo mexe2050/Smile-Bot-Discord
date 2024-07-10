@@ -1,4 +1,4 @@
-name: Discord Bot
+name: Discord Bot Deployment
 
 on:
   push:
@@ -6,36 +6,28 @@ on:
       - main
 
 jobs:
-  run:
-    name: Run Bot
+  deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      CLIENT_ID: ${{ secrets.CLIENT_ID }}
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'  # Use node version 14 to be compatible with canvas dependencies
+          node-version: '14'  # Specify your Node.js version here
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk2.0-dev libjpeg-dev libpango1.0-dev libcairo2-dev libgif-dev librsvg2-dev
-
-      - name: Install Node.js dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: Rebuild canvas module
-        run: |
-          npm rebuild canvas
-          chmod -R 755 node_modules/canvas
+      - name: Build Bot (if needed)
+        run: npm run build  # Adjust this according to your bot setup
 
-      - name: Start Bot
-        run: node src/index.js
+      - name: Deploy Bot
+        run: |
+          npm start  # Or whatever command starts your bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}  # Ensure BOT_TOKEN is set in your GitHub secrets
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}  # Example for MongoDB URI
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      # Add more steps as needed, such as tests, linting, etc.
