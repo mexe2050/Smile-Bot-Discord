@@ -22,7 +22,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'  # Adjust Node.js version as per your bot's requirements
+          node-version: '16'  # Update to Node.js version 16
 
       - name: Install dependencies
         run: npm install
