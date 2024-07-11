@@ -21,8 +21,6 @@ module.exports = {
                 );
             }
             
-            // If no custom permissions are set, or the user doesn't have the custom role,
-            // check for Administrator permission
             if (!hasPermission && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
                 return interaction.reply({ 
                     content: 'You do not have permission to use this command.', 
@@ -30,23 +28,24 @@ module.exports = {
                 });
             }
             
-            // If we reach here, the user has permission, so execute the command
+            // Execute the command
             await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
             
-            // Check if the interaction has already been replied to
+            // If we reach here without throwing, the command was successful
+            console.log(`Command ${interaction.commandName} executed successfully`);
+        } catch (error) {
+            console.error(`Error executing command ${interaction.commandName}:`, error);
+            
+            let errorMessage = 'There was an error while executing this command!';
+            if (process.env.NODE_ENV === 'development') {
+                errorMessage += ` Error: ${error.message}`;
+            }
+            
             if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ 
-                    content: 'There was an error while executing this command!', 
-                    ephemeral: true 
-                });
+                await interaction.followUp({ content: errorMessage, ephemeral: true });
             } else {
-                await interaction.reply({ 
-                    content: 'There was an error while executing this command!', 
-                    ephemeral: true 
-                });
+                await interaction.reply({ content: errorMessage, ephemeral: true });
             }
         }
     },
-  };
+};
