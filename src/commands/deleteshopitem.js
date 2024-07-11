@@ -32,6 +32,7 @@ module.exports = {
         const generateEmbed = (page) => {
             const startIndex = page * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
+            
             const pageItems = items.slice(startIndex, endIndex);
 
             const embed = new EmbedBuilder()
