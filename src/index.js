@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const TicketConfig = require('../../models/TicketConfig');
 
 const clientId = process.env.CLIENT_ID;
-const token = process.env.DISCORD_BOT_TOKEN;
+const token = process.env.BOT_TOKEN;
 const mongoURI = process.env.MONGODB_URI;
 
 const client = new Client({
