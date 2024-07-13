@@ -224,6 +224,17 @@ client.on('interactionCreate', async interaction => {
             await closeTicketWithReason(interaction);
         }
     }
+
+    client.on('interactionCreate', async interaction => {
+        if (!interaction.isButton()) return;
+    
+        if (interaction.customId === 'enter_giveaway') {
+            await interaction.deferUpdate();
+            await interaction.message.react('🎉');
+            await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
+        }
+    });
+    
 });
 
 client.login(process.env.BOT_TOKEN);
