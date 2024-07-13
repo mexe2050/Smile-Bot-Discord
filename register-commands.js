@@ -4,7 +4,7 @@ const path = require('path');
 require('dotenv').config();
 
 const clientId = process.env.CLIENT_ID;
-const token = process.env.DISCORD_BOT_TOKEN;
+const token = process.env.BOT_TOKEN;
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'src/commands');
