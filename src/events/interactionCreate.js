@@ -8,6 +8,9 @@ module.exports = {
         try {
             console.log(`User ${interaction.user.tag} attempting to use command: ${interaction.commandName}`);
             
+            // Defer the reply immediately
+            await interaction.deferReply({ ephemeral: true });
+
             // Universal permission check
             const commandPermissions = await CommandPermissions.findOne({ 
                 guildId: interaction.guild.id,
@@ -22,8 +25,8 @@ module.exports = {
             
             if (!hasPermission && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
                 console.log(`User ${interaction.user.tag} denied permission for command: ${interaction.commandName}`);
-                return interaction.reply({ 
-                    content: 'You do not have permission to use this command.', 
+                return interaction.editReply({ 
+                    content: 'You do not have permission to use this command.',
                     ephemeral: true 
                 });
             }
@@ -40,11 +43,7 @@ module.exports = {
                 errorMessage += ` Error: ${error.message}`;
             }
             
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: errorMessage, ephemeral: true });
-            } else {
-                await interaction.reply({ content: errorMessage, ephemeral: true });
-            }
+            await interaction.editReply({ content: errorMessage, ephemeral: true }).catch(console.error);
         }
     },
 };
