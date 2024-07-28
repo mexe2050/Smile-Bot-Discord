@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const ShopItem = require('../../models/ShopItem');
-const CommandPermissions = require('../../models/CommandPermissions');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -8,6 +7,11 @@ module.exports = {
         .setDescription('Delete an item from the shop'),
     async execute(interaction) {
         console.log(`deleteshopitem command initiated by ${interaction.user.tag} (${interaction.user.id})`);
+
+        // Check if the user has the Administrator permission
+        if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+            return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        }
 
         await interaction.deferReply();
 
