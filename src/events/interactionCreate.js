@@ -1,7 +1,7 @@
 const { PermissionFlagsBits } = require('discord.js');
 const CommandPermissions = require('../../models/CommandPermissions');
 
-const publicCommands = ['setgiveaway']; // Add other public commands here
+const publicCommands = ['setgiveaway', 'level', 'daily']; // Add other public commands here
 
 module.exports = {
     name: 'interactionCreate',
@@ -23,9 +23,12 @@ module.exports = {
                     hasPermission = interaction.member.roles.cache.some(role => 
                         commandPermissions.roleIds.includes(role.id)
                     );
+                } else {
+                    // If no specific permissions are set, allow admin by default
+                    hasPermission = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
                 }
                 
-                if (!hasPermission && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+                if (!hasPermission) {
                     return interaction.reply({ 
                         content: 'You do not have permission to use this command.', 
                         ephemeral: true 
