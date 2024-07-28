@@ -202,13 +202,21 @@ client.on('interactionCreate', async interaction => {
         if (!command) return;
 
         try {
+            // Check if the user has permission to use the command
+            const member = interaction.member;
+            if (!member.permissions.has(PermissionFlagsBits.Administrator) && 
+                !member.roles.cache.some(role => role.permissions.has(PermissionFlagsBits.ManageGuild))) {
+                return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+            }
+
             await command.execute(interaction);
         } catch (error) {
             console.error(error);
-            if (interaction.deferred || interaction.replied) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true }).catch(console.error);
+            const errorMessage = 'There was an error while executing this command!';
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
             } else {
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true }).catch(console.error);
+                await interaction.followUp({ content: errorMessage, ephemeral: true }).catch(console.error);
             }
         }
     } else if (interaction.isButton()) {
@@ -225,16 +233,11 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
-    client.on('interactionCreate', async interaction => {
-        if (!interaction.isButton()) return;
-    
-        if (interaction.customId === 'enter_giveaway') {
-            await interaction.deferUpdate();
-            await interaction.message.react('🎉');
-            await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
-        }
-    });
-    
+    if (interaction.isButton() && interaction.customId === 'enter_giveaway') {
+        await interaction.deferUpdate();
+        await interaction.message.react('🎉');
+        await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
+    }
 });
 
 client.login(process.env.BOT_TOKEN);
