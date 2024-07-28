@@ -1,5 +1,6 @@
 const { PermissionFlagsBits } = require('discord.js');
-const CommandPermissions = require('../../models/CommandPermissions');
+
+
 
 
 
