@@ -1,7 +1,7 @@
 const { PermissionFlagsBits } = require('discord.js');
 const CommandPermissions = require('../../models/CommandPermissions');
 
-const publicCommands = ['setgiveaway', 'level', 'daily']; // Add other public commands here
+
 
 module.exports = {
     name: 'interactionCreate',
