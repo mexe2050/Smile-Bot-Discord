@@ -11,31 +11,7 @@ module.exports = {
         if (!command) return;
     
         try {
-            // Skip permission check for public commands
-            if (!publicCommands.includes(interaction.commandName)) {
-                // Universal permission check
-                const commandPermissions = await CommandPermissions.findOne({ 
-                    guildId: interaction.guild.id,
-                    commandName: interaction.commandName 
-                });
-                let hasPermission = false;
-                if (commandPermissions && commandPermissions.roleIds.length > 0) {
-                    hasPermission = interaction.member.roles.cache.some(role => 
-                        commandPermissions.roleIds.includes(role.id)
-                    );
-                } else {
-                    // If no specific permissions are set, allow admin by default
-                    hasPermission = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
-                }
-                
-                if (!hasPermission) {
-                    return interaction.reply({ 
-                        content: 'You do not have permission to use this command.', 
-                        ephemeral: true 
-                    });
-                }
-            }
-            
+           
             // Execute the command
             await command.execute(interaction);
             
