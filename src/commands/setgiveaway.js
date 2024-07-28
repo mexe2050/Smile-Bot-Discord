@@ -22,8 +22,7 @@ module.exports = {
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('The channel to start the giveaway in')
-                .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+                .setRequired(true)),
 
     async execute(interaction) {
         const prize = interaction.options.getString('prize');

@@ -38,7 +38,6 @@ module.exports = {
 
             const command = interaction.options.getString('command');
             const role = interaction.options.getRole('role');
-
             console.log(`Setting up permissions for command: ${command}, role: ${role.name} (${role.id})`);
 
             const result = await CommandPermissions.findOneAndUpdate(
@@ -48,12 +47,10 @@ module.exports = {
             );
 
             console.log('Database update result:', result);
-
             await interaction.reply(`Role ${role.name} can now use the /${command} command in this server.`);
             console.log('Permission setup completed successfully.');
         } catch (error) {
             console.error('Error in setupcommandpermissions command:', error);
-
             if (error.code === 10062) {
                 console.log('Interaction has already been acknowledged or timed out');
             } else {

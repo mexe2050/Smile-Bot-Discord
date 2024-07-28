@@ -1,6 +1,8 @@
 const { PermissionFlagsBits } = require('discord.js');
 const CommandPermissions = require('../../models/CommandPermissions');
 
+const publicCommands = ['setgiveaway']; // Add other public commands here
+
 module.exports = {
     name: 'interactionCreate',
     async execute(interaction) {
@@ -9,23 +11,26 @@ module.exports = {
         if (!command) return;
     
         try {
-            // Universal permission check
-            const commandPermissions = await CommandPermissions.findOne({ 
-                guildId: interaction.guild.id,
-                commandName: interaction.commandName 
-            });
-            let hasPermission = false;
-            if (commandPermissions && commandPermissions.roleIds.length > 0) {
-                hasPermission = interaction.member.roles.cache.some(role => 
-                    commandPermissions.roleIds.includes(role.id)
-                );
-            }
-            
-            if (!hasPermission && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-                return interaction.reply({ 
-                    content: 'You do not have permission to use this command.', 
-                    ephemeral: true 
+            // Skip permission check for public commands
+            if (!publicCommands.includes(interaction.commandName)) {
+                // Universal permission check
+                const commandPermissions = await CommandPermissions.findOne({ 
+                    guildId: interaction.guild.id,
+                    commandName: interaction.commandName 
                 });
+                let hasPermission = false;
+                if (commandPermissions && commandPermissions.roleIds.length > 0) {
+                    hasPermission = interaction.member.roles.cache.some(role => 
+                        commandPermissions.roleIds.includes(role.id)
+                    );
+                }
+                
+                if (!hasPermission && !interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+                    return interaction.reply({ 
+                        content: 'You do not have permission to use this command.', 
+                        ephemeral: true 
+                    });
+                }
             }
             
             // Execute the command

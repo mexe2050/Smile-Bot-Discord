@@ -4,33 +4,12 @@ const CommandPermissions = require('../../models/CommandPermissions');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('deleteshopitem')
-    .setDescription('Delete an item from the shop'),
-async execute(interaction) {
-    console.log(`deleteshopitem command initiated by ${interaction.user.tag} (${interaction.user.id})`);
+        .setName('deleteshopitem')
+        .setDescription('Delete an item from the shop'),
+    async execute(interaction) {
+        console.log(`deleteshopitem command initiated by ${interaction.user.tag} (${interaction.user.id})`);
 
-    // Check if the user has permission to use this command
-    const commandPermissions = await CommandPermissions.findOne({ 
-        guildId: interaction.guild.id,
-        commandName: 'deleteshopitem' 
-    });
-    console.log('Command permissions found:', commandPermissions);
-
-    if (commandPermissions && commandPermissions.roleIds.length > 0) {
-        const hasPermission = interaction.member.roles.cache.some(role => commandPermissions.roleIds.includes(role.id));
-        console.log(`User has required role: ${hasPermission}`);
-        if (!hasPermission) {
-            console.log('Permission denied: User does not have the required role');
-            return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-        }
-    } else if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuild)) {
-        console.log('Permission denied: User does not have ManageGuild permission');
-        return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-    }
-
-    console.log('Permission check passed, proceeding with command execution');
-
-    await interaction.deferReply();
+        await interaction.deferReply();
 
         const items = await ShopItem.find({});
         if (items.length === 0) {

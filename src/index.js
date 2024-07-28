@@ -202,13 +202,6 @@ client.on('interactionCreate', async interaction => {
         if (!command) return;
 
         try {
-            // Check if the user has permission to use the command
-            const member = interaction.member;
-            if (!member.permissions.has(PermissionFlagsBits.Administrator) && 
-                !member.roles.cache.some(role => role.permissions.has(PermissionFlagsBits.ManageGuild))) {
-                return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-            }
-
             await command.execute(interaction);
         } catch (error) {
             console.error(error);
