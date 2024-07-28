@@ -21,7 +21,6 @@ module.exports = {
                     { name: 'deleteshopitem', value: 'deleteshopitem' },
                     { name: 'setwelcome', value: 'setwelcome' },
                     { name: 'setexit', value: 'setexit' },
-                    // Add any other commands you want to set permissions for
                 ))
         .addRoleOption(option =>
             option.setName('role')
@@ -29,20 +28,29 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         try {
+            console.log(`setupcommandpermissions called by ${interaction.user.tag} (${interaction.user.id})`);
+            console.log(`Guild owner ID: ${interaction.guild.ownerId}`);
+            
             if (interaction.user.id !== interaction.guild.ownerId) {
+                console.log('User is not the server owner. Permission denied.');
                 return await interaction.reply({ content: 'Only the server owner can use this command.', ephemeral: true });
             }
 
             const command = interaction.options.getString('command');
             const role = interaction.options.getRole('role');
 
-            await CommandPermissions.findOneAndUpdate(
+            console.log(`Setting up permissions for command: ${command}, role: ${role.name} (${role.id})`);
+
+            const result = await CommandPermissions.findOneAndUpdate(
                 { guildId: interaction.guild.id, commandName: command },
                 { $addToSet: { roleIds: role.id } },
                 { upsert: true, new: true }
             );
 
+            console.log('Database update result:', result);
+
             await interaction.reply(`Role ${role.name} can now use the /${command} command in this server.`);
+            console.log('Permission setup completed successfully.');
         } catch (error) {
             console.error('Error in setupcommandpermissions command:', error);
 
