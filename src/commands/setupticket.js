@@ -41,18 +41,18 @@ module.exports = {
             option.setName('reply_message3')
                 .setDescription('The reply message for the third button')
                 .setRequired(true))
-        .addStringOption(option => 
-            option.setName('category_id')
-                .setDescription('The ID of the category for ticket rooms')
-                .setRequired(true))
-        .addRoleOption(option =>
-            option.setName('support_role')
-                .setDescription('The support role for tickets')
-                .setRequired(true))
-        .addStringOption(option => 
-            option.setName('color')
-                .setDescription('The color of the embed (hex code)')
-                .setRequired(false)),
+                .addStringOption(option => 
+                    option.setName('category_id')
+                        .setDescription('The ID of the category for ticket rooms')
+                        .setRequired(true))
+                .addRoleOption(option =>
+                    option.setName('support_role')
+                        .setDescription('The support role for tickets')
+                        .setRequired(true))
+                .addStringOption(option => 
+                    option.setName('color')
+                        .setDescription('The color of the embed (hex code)')
+                        .setRequired(false)),
 
     async execute(interaction) {
         const channel = interaction.options.getChannel('channel');
