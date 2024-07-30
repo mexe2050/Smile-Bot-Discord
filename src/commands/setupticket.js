@@ -3,56 +3,56 @@ const TicketConfig = require('../../models/TicketConfig');
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName('setupticket')
-    .setDescription('Sets up the ticket creation message')
-    .addChannelOption(option =>
-        option.setName('channel')
-            .setDescription('The channel to send the ticket creation message')
-            .setRequired(true))
-    .addStringOption(option => 
-        option.setName('title')
-            .setDescription('The title of the embed')
-            .setRequired(true))
-    .addStringOption(option => 
-        option.setName('description')
-            .setDescription('The description of the embed')
-            .setRequired(true))
-    .addStringOption(option => 
-        option.setName('color')
-            .setDescription('The color of the embed (hex code)')
-            .setRequired(false))
-    .addStringOption(option =>
-        option.setName('button1_text')
-            .setDescription('The text for the first button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('button2_text')
-            .setDescription('The text for the second button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('button3_text')
-            .setDescription('The text for the third button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('reply_message1')
-            .setDescription('The reply message for the first button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('reply_message2')
-            .setDescription('The reply message for the second button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('reply_message3')
-            .setDescription('The reply message for the third button')
-            .setRequired(true))
-    .addStringOption(option =>
-        option.setName('category_id')
-            .setDescription('The ID of the category for ticket rooms')
-            .setRequired(true))
-    .addRoleOption(option =>
-        option.setName('support_role')
-            .setDescription('The support role for tickets')
-            .setRequired(true)),
+        .setName('setupticket')
+        .setDescription('Sets up the ticket creation message')
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('The channel to send the ticket creation message')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('title')
+                .setDescription('The title of the embed')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('description')
+                .setDescription('The description of the embed')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('button1_text')
+                .setDescription('The text for the first button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('button2_text')
+                .setDescription('The text for the second button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('button3_text')
+                .setDescription('The text for the third button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reply_message1')
+                .setDescription('The reply message for the first button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reply_message2')
+                .setDescription('The reply message for the second button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('reply_message3')
+                .setDescription('The reply message for the third button')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('category_id')
+                .setDescription('The ID of the category for ticket rooms')
+                .setRequired(true))
+        .addRoleOption(option =>
+            option.setName('support_role')
+                .setDescription('The support role for tickets')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('color')
+                .setDescription('The color of the embed (hex code)')
+                .setRequired(false)),
 
     async execute(interaction) {
         const channel = interaction.options.getChannel('channel');
