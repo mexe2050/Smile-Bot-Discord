@@ -76,7 +76,7 @@ module.exports = {
                     const fetchedMessage = await channel.messages.fetch(message.id);
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
                     
-                    if (!reaction) {
+                    if (!reaction || reaction.count <= 1) {
                         return channel.send('No one entered the giveaway.');
                     }
 
@@ -101,24 +101,24 @@ module.exports = {
                     }
 
                     if (validUsers.size > 0) {
-                        const winners = validUsers.random();
-                        endEmbed.addFields({ name: 'Winner', value: winners.toString() });
+                        const winner = validUsers.random();
+                        endEmbed.addFields({ name: 'Winner', value: winner.toString() });
 
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
 
-                        channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
+                        channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
                         if (roleReward) {
                             try {
-                                const member = await interaction.guild.members.fetch(winners.id);
+                                const member = await interaction.guild.members.fetch(winner.id);
                                 await member.roles.add(roleReward);
-                                channel.send(`${winners} has been given the ${roleReward} role!`);
+                                channel.send(`${winner} has been given the ${roleReward} role!`);
                             } catch (error) {
                                 console.error('Failed to add role:', error);
                                 channel.send('There was an error giving the role reward. Please contact an administrator.');
                             }
                         }
                         if (binanceReward) {
-                            channel.send(`${winners} also won ${binanceReward} in Binance rewards!`);
+                            channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
                         }
 
                         // Add a 20-second delay before doing anything else
