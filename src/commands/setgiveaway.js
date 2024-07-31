@@ -17,9 +17,6 @@ module.exports = {
         option.setName('channel')
             .setDescription('The channel to start the giveaway in')
             .setRequired(true))
-    .addStringOption(option =>
-        option.setName('binance_reward')
-            .setDescription('Binance reward amount (optional)'))
     .addRoleOption(option =>
         option.setName('role_reward')
             .setDescription('Role to be given as a reward (optional)'))
