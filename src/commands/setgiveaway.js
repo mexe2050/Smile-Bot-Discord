@@ -3,26 +3,26 @@ const ms = require('ms');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('setgiveaway')
-        .setDescription('Set up a giveaway')
-        .addStringOption(option => 
-            option.setName('prize')
-                .setDescription('The prize for the giveaway')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('duration')
-                .setDescription('Duration of the giveaway (e.g. 1h, 1d, 1w)')
-                .setRequired(true))
-        .addStringOption(option =>
-            option.setName('binance_reward')
-                .setDescription('Binance reward amount (optional)'))
-        .addRoleOption(option =>
-            option.setName('role_reward')
-                .setDescription('Role to be given as a reward (optional)'))
-        .addChannelOption(option =>
-            option.setName('channel')
-                .setDescription('The channel to start the giveaway in')
-                .setRequired(true)),
+    .setName('setgiveaway')
+    .setDescription('Set up a giveaway')
+    .addStringOption(option => 
+        option.setName('prize')
+            .setDescription('The prize for the giveaway')
+            .setRequired(true))
+    .addStringOption(option =>
+        option.setName('duration')
+            .setDescription('Duration of the giveaway (e.g. 1h, 1d, 1w)')
+            .setRequired(true))
+    .addChannelOption(option =>
+        option.setName('channel')
+            .setDescription('The channel to start the giveaway in')
+            .setRequired(true))
+    .addStringOption(option =>
+        option.setName('binance_reward')
+            .setDescription('Binance reward amount (optional)'))
+    .addRoleOption(option =>
+        option.setName('role_reward')
+            .setDescription('Role to be given as a reward (optional)')),
 
     async execute(interaction) {
         const prize = interaction.options.getString('prize');
