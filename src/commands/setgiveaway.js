@@ -76,19 +76,19 @@ module.exports = {
                     const fetchedMessage = await channel.messages.fetch(message.id);
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
                     
-                    let winners;
-                    if (reaction) {
-                        const users = await reaction.users.fetch();
-                        winners = users.filter(user => !user.bot).random();
+                    if (!reaction) {
+                        return channel.send('No one entered the giveaway.');
                     }
+
+                    const users = await reaction.users.fetch();
+                    const validUsers = users.filter(user => !user.bot);
 
                     const endEmbed = new EmbedBuilder()
                         .setTitle('🎉 Giveaway Ended! 🎉')
                         .setDescription(`Prize: ${prize}`)
                         .addFields(
                             { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
-                            { name: 'Hosted By', value: `${interaction.user}`, inline: true },
-                            { name: 'Winner', value: winners ? winners.toString() : 'No winner' }
+                            { name: 'Hosted By', value: `${interaction.user}`, inline: true }
                         )
                         .setColor('#00FF00');
 
@@ -100,34 +100,39 @@ module.exports = {
                         endEmbed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
                     }
 
-                    await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
+                    if (validUsers.size > 0) {
+                        const winners = validUsers.random();
+                        endEmbed.addFields({ name: 'Winner', value: winners.toString() });
 
-                    if (winners) {
-                        await channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
+                        await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
+
+                        channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
                         if (roleReward) {
                             try {
                                 await winners.roles.add(roleReward);
-                                await channel.send(`${winners} has been given the ${roleReward} role!`);
+                                channel.send(`You have been given the ${roleReward} role!`);
                             } catch (error) {
                                 console.error('Failed to add role:', error);
-                                await channel.send('There was an error giving the role reward. Please contact an administrator.');
+                                channel.send('There was an error giving the role reward. Please contact an administrator.');
                             }
                         }
                         if (binanceReward) {
-                            await channel.send(`${winners} also won ${binanceReward} in Binance rewards!`);
+                            channel.send(`You also won ${binanceReward} in Binance rewards!`);
                         }
+
+                        // Add a 20-second delay before doing anything else
+                        setTimeout(() => {
+                            // Any additional actions you want to perform after 20 seconds
+                            channel.send('The giveaway has concluded. Thank you all for participating!');
+                        }, 20000); // 20000 milliseconds = 20 seconds
                     } else {
-                        await channel.send('No one entered the giveaway.');
+                        endEmbed.addFields({ name: 'Winner', value: 'No winner' });
+                        await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
+                        channel.send('No one entered the giveaway.');
                     }
-
-                    // Add 20-second delay
-                    setTimeout(() => {
-                        channel.send('This message appears 20 seconds after the giveaway ended.');
-                    }, 20000);
-
                 } catch (error) {
                     console.error('Error ending giveaway:', error);
-                    await channel.send('There was an error ending the giveaway. Please contact an administrator.');
+                    channel.send('There was an error ending the giveaway. Please contact an administrator.');
                 }
             }, duration);
 
