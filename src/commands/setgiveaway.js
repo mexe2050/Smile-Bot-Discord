@@ -69,7 +69,17 @@ module.exports = {
             const entrants = await fetchedMessage.reactions.cache.get('🎉').users.fetch();
             const winner = entrants.random();
 
+            const endEmbed = new EmbedBuilder()
+                .setTitle('🎉 Giveaway Ended! 🎉')
+                .setDescription(`Prize: ${prize}`)
+                .addFields(
+                    { name: 'Ended At', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
+                    { name: 'Hosted By', value: `${interaction.user}`, inline: true }
+                )
+                .setColor('#00FF00');
+
             if (winner) {
+                endEmbed.addFields({ name: 'Winner', value: winner.toString(), inline: true });
                 channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
                 if (binanceReward) {
                     channel.send(`You also won ${binanceReward} in Binance rewards!`);
@@ -84,14 +94,15 @@ module.exports = {
                     }
                 }
             } else {
+                endEmbed.addFields({ name: 'Winner', value: 'No one entered the giveaway', inline: true });
                 channel.send('No one entered the giveaway.');
             }
 
-            // Disable the button
+            // Disable the button and update the embed
             const disabledRow = new ActionRowBuilder().addComponents(
                 button.setDisabled(true).setLabel('Giveaway Ended')
             );
-            await fetchedMessage.edit({ components: [disabledRow] });
+            await fetchedMessage.edit({ embeds: [endEmbed], components: [disabledRow] });
         }, duration);
     },
 };
