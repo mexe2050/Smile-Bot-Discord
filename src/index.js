@@ -219,17 +219,20 @@ client.on('interactionCreate', async interaction => {
             await closeTicket(interaction);
         } else if (interaction.customId === 'close_ticket_reason') {
             await showCloseReasonModal(interaction);
+        } else if (interaction.customId === 'enter_giveaway') {
+            try {
+                await interaction.deferUpdate();
+                await interaction.message.react('🎉');
+                await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
+            } catch (error) {
+                console.error('Error handling giveaway entry:', error);
+                await interaction.followUp({ content: 'There was an error entering the giveaway. Please try again.', ephemeral: true }).catch(console.error);
+            }
         }
     } else if (interaction.isModalSubmit()) {
         if (interaction.customId === 'close_ticket_modal') {
             await closeTicketWithReason(interaction);
         }
-    }
-
-    if (interaction.isButton() && interaction.customId === 'enter_giveaway') {
-        await interaction.deferUpdate();
-        await interaction.message.react('🎉');
-        await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
     }
 });
 
