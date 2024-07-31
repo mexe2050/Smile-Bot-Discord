@@ -76,12 +76,11 @@ module.exports = {
                     const fetchedMessage = await channel.messages.fetch(message.id);
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
                     
-                    if (!reaction) {
-                        return channel.send('No one entered the giveaway.');
+                    let winners;
+                    if (reaction) {
+                        const users = await reaction.users.fetch();
+                        winners = users.filter(user => !user.bot).random();
                     }
-
-                    const users = await reaction.users.fetch();
-                    const winners = users.filter(user => !user.bot).random();
 
                     const endEmbed = new EmbedBuilder()
                         .setTitle('🎉 Giveaway Ended! 🎉')
@@ -104,25 +103,31 @@ module.exports = {
                     await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
 
                     if (winners) {
-                        channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
+                        await channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
                         if (roleReward) {
                             try {
                                 await winners.roles.add(roleReward);
-                                channel.send(`You have been given the ${roleReward} role!`);
+                                await channel.send(`${winners} has been given the ${roleReward} role!`);
                             } catch (error) {
                                 console.error('Failed to add role:', error);
-                                channel.send('There was an error giving the role reward. Please contact an administrator.');
+                                await channel.send('There was an error giving the role reward. Please contact an administrator.');
                             }
                         }
                         if (binanceReward) {
-                            channel.send(`You also won ${binanceReward} in Binance rewards!`);
+                            await channel.send(`${winners} also won ${binanceReward} in Binance rewards!`);
                         }
                     } else {
-                        channel.send('No one entered the giveaway.');
+                        await channel.send('No one entered the giveaway.');
                     }
+
+                    // Add 20-second delay
+                    setTimeout(() => {
+                        channel.send('This message appears 20 seconds after the giveaway ended.');
+                    }, 20000);
+
                 } catch (error) {
                     console.error('Error ending giveaway:', error);
-                    channel.send('There was an error ending the giveaway. Please contact an administrator.');
+                    await channel.send('There was an error ending the giveaway. Please contact an administrator.');
                 }
             }, duration);
 
