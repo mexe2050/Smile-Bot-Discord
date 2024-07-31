@@ -22,7 +22,8 @@ module.exports = {
             .setDescription('Binance reward amount (optional)'))
     .addRoleOption(option =>
         option.setName('role_reward')
-            .setDescription('Role to be given as a reward (optional)')),
+            .setDescription('Role to be given as a reward (optional)'))
+            .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction) {
         const prize = interaction.options.getString('prize');

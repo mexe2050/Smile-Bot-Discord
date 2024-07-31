@@ -10,7 +10,7 @@ module.exports = {
 
         try {
             // List of commands that require special permissions
-            const restrictedCommands = ['customembed', 'kick', 'ban', 'timeout', 'setreactionrole', 'setlevelupchannel', 'addshopitem', 'setdailyreward', 'deleteshopitem', 'setwelcome', 'setexit'];
+            const restrictedCommands = ['customembed', 'kick', 'ban', 'timeout', 'setreactionrole', 'setlevelupchannel', 'addshopitem', 'setdailyreward', 'deleteshopitem', 'setwelcome', 'setexit', 'setgiveaway'];
 
             if (restrictedCommands.includes(interaction.commandName)) {
                 // Check if the user has the required permissions (ADMINISTRATOR in this case)
