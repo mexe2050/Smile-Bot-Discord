@@ -109,20 +109,20 @@ module.exports = {
                         channel.send(`Congratulations ${winners}! You won the giveaway for ${prize}!`);
                         if (roleReward) {
                             try {
-                                await winners.roles.add(roleReward);
-                                channel.send(`You have been given the ${roleReward} role!`);
+                                const member = await interaction.guild.members.fetch(winners.id);
+                                await member.roles.add(roleReward);
+                                channel.send(`${winners} has been given the ${roleReward} role!`);
                             } catch (error) {
                                 console.error('Failed to add role:', error);
                                 channel.send('There was an error giving the role reward. Please contact an administrator.');
                             }
                         }
                         if (binanceReward) {
-                            channel.send(`You also won ${binanceReward} in Binance rewards!`);
+                            channel.send(`${winners} also won ${binanceReward} in Binance rewards!`);
                         }
 
                         // Add a 20-second delay before doing anything else
                         setTimeout(() => {
-                            // Any additional actions you want to perform after 20 seconds
                             channel.send('The giveaway has concluded. Thank you all for participating!');
                         }, 20000); // 20000 milliseconds = 20 seconds
                     } else {
@@ -138,7 +138,11 @@ module.exports = {
 
         } catch (error) {
             console.error('Error in setgiveaway command:', error);
-            await interaction.editReply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+            if (interaction.deferred) {
+                await interaction.editReply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+            } else {
+                await interaction.reply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+            }
         }
     },
 };
