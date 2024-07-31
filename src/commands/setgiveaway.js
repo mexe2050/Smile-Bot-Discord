@@ -73,10 +73,18 @@ module.exports = {
                 .setTitle('🎉 Giveaway Ended! 🎉')
                 .setDescription(`Prize: ${prize}`)
                 .addFields(
-                    { name: 'Ended At', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
+                    { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
                     { name: 'Hosted By', value: `${interaction.user}`, inline: true }
                 )
                 .setColor('#00FF00');
+
+            if (binanceReward) {
+                endEmbed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
+            }
+
+            if (roleReward) {
+                endEmbed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
+            }
 
             if (winner) {
                 endEmbed.addFields({ name: 'Winner', value: winner.toString(), inline: true });
