@@ -23,19 +23,19 @@ module.exports = {
         .addStringOption(option =>
             option.setName('binance_reward')
                 .setDescription('Binance reward for the giveaway (optional)'))
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
-
         try {
+            await interaction.deferReply({ ephemeral: true });
+
             const prize = interaction.options.getString('prize');
             const durationString = interaction.options.getString('duration');
-            const duration = ms(durationString);
             const channel = interaction.options.getChannel('channel');
             const roleReward = interaction.options.getRole('role_reward');
             const binanceReward = interaction.options.getString('binance_reward');
 
+            const duration = ms(durationString);
             if (!duration || isNaN(duration)) {
                 return await interaction.editReply({ content: 'Please provide a valid duration!', ephemeral: true });
             }
@@ -77,7 +77,8 @@ module.exports = {
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
                     
                     if (!reaction || reaction.count <= 1) {
-                        return channel.send('No one entered the giveaway.');
+                        await channel.send('No one entered the giveaway.');
+                        return;
                     }
 
                     const users = await reaction.users.fetch();
@@ -106,33 +107,35 @@ module.exports = {
 
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
 
-                        channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
+                        await channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
+                        
                         if (roleReward) {
                             try {
                                 const member = await interaction.guild.members.fetch(winner.id);
                                 await member.roles.add(roleReward);
-                                channel.send(`${winner} has been given the ${roleReward} role!`);
+                                await channel.send(`${winner} has been given the ${roleReward} role!`);
                             } catch (error) {
                                 console.error('Failed to add role:', error);
-                                channel.send('There was an error giving the role reward. Please contact an administrator.');
+                                await channel.send('There was an error giving the role reward. Please contact an administrator.');
                             }
                         }
+                        
                         if (binanceReward) {
-                            channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
+                            await channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
                         }
 
-                        // Add a 20-second delay before doing anything else
+                        // Add a 20-second delay before sending the final message
                         setTimeout(() => {
                             channel.send('The giveaway has concluded. Thank you all for participating!');
-                        }, 20000); // 20000 milliseconds = 20 seconds
+                        }, 20000);
                     } else {
                         endEmbed.addFields({ name: 'Winner', value: 'No winner' });
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
-                        channel.send('No one entered the giveaway.');
+                        await channel.send('No one entered the giveaway.');
                     }
                 } catch (error) {
                     console.error('Error ending giveaway:', error);
-                    channel.send('There was an error ending the giveaway. Please contact an administrator.');
+                    await channel.send('There was an error ending the giveaway. Please contact an administrator.');
                 }
             }, duration);
 

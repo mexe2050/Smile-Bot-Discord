@@ -197,41 +197,41 @@ async function closeTicketWithReason(interaction) {
 }
 
 client.on('interactionCreate', async interaction => {
-    if (interaction.isCommand()) {
-        const command = client.commands.get(interaction.commandName);
-        if (!command) return;
+    try {
+        if (interaction.isCommand()) {
+            const command = client.commands.get(interaction.commandName);
+            if (!command) return;
 
-        try {
             await command.execute(interaction);
-        } catch (error) {
-            console.error(error);
-            const errorMessage = 'There was an error while executing this command!';
-            if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
-            } else {
-                await interaction.followUp({ content: errorMessage, ephemeral: true }).catch(console.error);
+        } else if (interaction.isButton()) {
+            console.log('Button interaction received:', interaction.customId);  // Debug log
+            if (interaction.customId.startsWith('create_ticket_')) {
+                await createTicket(interaction);
+            } else if (interaction.customId === 'close_ticket') {
+                await closeTicket(interaction);
+            } else if (interaction.customId === 'close_ticket_reason') {
+                await showCloseReasonModal(interaction);
+            } else if (interaction.customId === 'enter_giveaway') {
+                try {
+                    await interaction.deferUpdate();
+                    await interaction.message.react('🎉');
+                    await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
+                    console.log('User entered giveaway:', interaction.user.tag);  // Debug log
+                } catch (error) {
+                    console.error('Error handling giveaway entry:', error);
+                }
+            }
+        } else if (interaction.isModalSubmit()) {
+            if (interaction.customId === 'close_ticket_modal') {
+                await closeTicketWithReason(interaction);
             }
         }
-    } else if (interaction.isButton()) {
-        if (interaction.customId.startsWith('create_ticket_')) {
-            await createTicket(interaction);
-        } else if (interaction.customId === 'close_ticket') {
-            await closeTicket(interaction);
-        } else if (interaction.customId === 'close_ticket_reason') {
-            await showCloseReasonModal(interaction);
-        } else if (interaction.customId === 'enter_giveaway') {
-            try {
-                await interaction.deferUpdate();
-                await interaction.message.react('🎉');
-                await interaction.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
-            } catch (error) {
-                console.error('Error handling giveaway entry:', error);
-                await interaction.followUp({ content: 'There was an error entering the giveaway. Please try again.', ephemeral: true }).catch(console.error);
-            }
-        }
-    } else if (interaction.isModalSubmit()) {
-        if (interaction.customId === 'close_ticket_modal') {
-            await closeTicketWithReason(interaction);
+    } catch (error) {
+        console.error('Error handling interaction:', error);
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: 'There was an error while processing this interaction!', ephemeral: true }).catch(console.error);
+        } else {
+            await interaction.followUp({ content: 'There was an error while processing this interaction!', ephemeral: true }).catch(console.error);
         }
     }
 });
