@@ -37,7 +37,11 @@ module.exports = {
 
             const duration = ms(durationString);
             if (!duration || isNaN(duration)) {
-                return await interaction.editReply({ content: 'Please provide a valid duration!', ephemeral: true });
+                return await interaction.editReply('Please provide a valid duration!');
+            }
+
+            if (!channel.permissionsFor(interaction.client.user).has(PermissionFlagsBits.SendMessages)) {
+                return await interaction.editReply('I don\'t have permission to send messages in that channel.');
             }
 
             const endTime = Date.now() + duration;
@@ -68,10 +72,10 @@ module.exports = {
 
             const message = await channel.send({ embeds: [embed], components: [row] });
 
-            await interaction.editReply({ content: `Giveaway started in ${channel}!`, ephemeral: true });
+            await interaction.editReply(`Giveaway started in ${channel}!`);
 
             // Schedule giveaway end
-            setTimeout(async () => {
+            const endGiveaway = setTimeout(async () => {
                 try {
                     const fetchedMessage = await channel.messages.fetch(message.id);
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
@@ -124,7 +128,6 @@ module.exports = {
                             await channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
                         }
 
-                        // Add a 20-second delay before sending the final message
                         setTimeout(() => {
                             channel.send('The giveaway has concluded. Thank you all for participating!');
                         }, 20000);
@@ -139,12 +142,16 @@ module.exports = {
                 }
             }, duration);
 
+            // Store the timeout if needed
+            interaction.client.giveaways = interaction.client.giveaways || new Map();
+            interaction.client.giveaways.set(message.id, endGiveaway);
+
         } catch (error) {
             console.error('Error in setgiveaway command:', error);
             if (interaction.deferred) {
-                await interaction.editReply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+                await interaction.editReply({ content: 'There was an error while setting up the giveaway. Please try again.' }).catch(console.error);
             } else {
-                await interaction.reply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+                await interaction.reply({ content: 'There was an error while setting up the giveaway. Please try again.', ephemeral: true }).catch(console.error);
             }
         }
     },
