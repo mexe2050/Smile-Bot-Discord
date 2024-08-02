@@ -27,6 +27,7 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            // Immediately acknowledge the interaction
             await interaction.deferReply({ ephemeral: true });
 
             const prize = interaction.options.getString('prize');
@@ -75,7 +76,7 @@ module.exports = {
             await interaction.editReply(`Giveaway started in ${channel}!`);
 
             // Schedule giveaway end
-            const endGiveaway = setTimeout(async () => {
+            setTimeout(async () => {
                 try {
                     const fetchedMessage = await channel.messages.fetch(message.id);
                     const reaction = fetchedMessage.reactions.cache.get('🎉');
@@ -110,7 +111,6 @@ module.exports = {
                         endEmbed.addFields({ name: 'Winner', value: winner.toString() });
 
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
-
                         await channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
                         
                         if (roleReward) {
@@ -127,10 +127,6 @@ module.exports = {
                         if (binanceReward) {
                             await channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
                         }
-
-                        setTimeout(() => {
-                            channel.send('The giveaway has concluded. Thank you all for participating!');
-                        }, 20000);
                     } else {
                         endEmbed.addFields({ name: 'Winner', value: 'No winner' });
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
@@ -141,10 +137,6 @@ module.exports = {
                     await channel.send('There was an error ending the giveaway. Please contact an administrator.');
                 }
             }, duration);
-
-            // Store the timeout if needed
-            interaction.client.giveaways = interaction.client.giveaways || new Map();
-            interaction.client.giveaways.set(message.id, endGiveaway);
 
         } catch (error) {
             console.error('Error in setgiveaway command:', error);
