@@ -29,110 +29,125 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true });
 
-        const prize = interaction.options.getString('prize');
-        const durationString = interaction.options.getString('duration');
-        const channel = interaction.options.getChannel('channel');
-        const roleReward = interaction.options.getRole('role_reward');
-        const coinReward = interaction.options.getInteger('coin_reward');
+        try {
+            const prize = interaction.options.getString('prize');
+            const durationString = interaction.options.getString('duration');
+            const channel = interaction.options.getChannel('channel');
+            const roleReward = interaction.options.getRole('role_reward');
+            const coinReward = interaction.options.getInteger('coin_reward');
 
-        const duration = ms(durationString);
-        if (!duration || isNaN(duration)) {
-            return await interaction.editReply({ content: 'Please provide a valid duration!', ephemeral: true });
-        }
-
-        const endTime = Date.now() + duration;
-
-        const embed = new EmbedBuilder()
-            .setTitle('🎉 Giveaway! 🎉')
-            .setDescription(`Prize: ${prize}`)
-            .addFields(
-                { name: 'Ends At', value: `<t:${Math.floor(endTime / 1000)}:R>`, inline: true },
-                { name: 'Hosted By', value: `${interaction.user}`, inline: true }
-            )
-            .setColor('#FF0000');
-
-        if (roleReward) {
-            embed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
-        }
-
-        if (coinReward) {
-            embed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
-        }
-
-        const message = await channel.send({ embeds: [embed] });
-        await message.react('🎉');
-
-        await interaction.editReply({ content: `Giveaway started in ${channel}!`, ephemeral: true });
-
-        setTimeout(async () => {
-            const fetchedMessage = await channel.messages.fetch(message.id);
-            const reaction = fetchedMessage.reactions.cache.get('🎉');
-            
-            if (!reaction || reaction.count <= 1) {
-                await channel.send('No one entered the giveaway.');
-                return;
+            const duration = ms(durationString);
+            if (!duration || isNaN(duration)) {
+                return await interaction.editReply({ content: 'Please provide a valid duration!', ephemeral: true });
             }
 
-            const users = await reaction.users.fetch();
-            const validUsers = users.filter(user => !user.bot);
+            const endTime = Date.now() + duration;
 
-            const endEmbed = new EmbedBuilder()
-                .setTitle('🎉 Giveaway Ended! 🎉')
+            const embed = new EmbedBuilder()
+                .setTitle('🎉 Giveaway! 🎉')
                 .setDescription(`Prize: ${prize}`)
                 .addFields(
-                    { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
+                    { name: 'Ends At', value: `<t:${Math.floor(endTime / 1000)}:R>`, inline: true },
                     { name: 'Hosted By', value: `${interaction.user}`, inline: true }
                 )
-                .setColor('#00FF00');
+                .setColor('#FF0000');
 
             if (roleReward) {
-                endEmbed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
+                embed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
             }
 
             if (coinReward) {
-                endEmbed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
+                embed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
             }
 
-            if (validUsers.size > 0) {
-                const winner = validUsers.random();
-                endEmbed.addFields({ name: 'Winner', value: winner.toString() });
+            const message = await channel.send({ embeds: [embed] });
+            await message.react('🎉');
 
-                await fetchedMessage.edit({ embeds: [endEmbed] });
+            await interaction.editReply({ content: `Giveaway started in ${channel}!`, ephemeral: true });
 
-                await channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
-                
-                if (roleReward) {
-                    try {
-                        const member = await interaction.guild.members.fetch(winner.id);
-                        await member.roles.add(roleReward);
-                        await channel.send(`${winner} has been given the ${roleReward} role!`);
-                    } catch (error) {
-                        console.error('Failed to add role:', error);
-                        await channel.send('There was an error giving the role reward. Please contact an administrator.');
+            setTimeout(async () => {
+                try {
+                    const fetchedMessage = await channel.messages.fetch(message.id);
+                    const reaction = fetchedMessage.reactions.cache.get('🎉');
+                    
+                    console.log('Reaction count:', reaction ? reaction.count : 'No reaction found');
+
+                    if (!reaction || reaction.count <= 1) {
+                        await channel.send('No one entered the giveaway.');
+                        return;
                     }
-                }
-                
-                if (coinReward) {
-                    try {
-                        await User.findOneAndUpdate(
-                            { userId: winner.id, guildId: interaction.guild.id },
-                            { $inc: { balance: coinReward } }
-                        );
-                        await channel.send(`${winner} has been awarded ${coinReward} coins!`);
-                    } catch (error) {
-                        console.error('Failed to add coins:', error);
-                        await channel.send('There was an error giving the coin reward. Please contact an administrator.');
-                    }
-                }
 
-                setTimeout(() => {
-                    channel.send('The giveaway has concluded. Thank you all for participating!');
-                }, 20000);
-            } else {
-                endEmbed.addFields({ name: 'Winner', value: 'No winner' });
-                await fetchedMessage.edit({ embeds: [endEmbed] });
-                await channel.send('No one entered the giveaway.');
-            }
-        }, duration);
+                    const users = await reaction.users.fetch();
+                    const validUsers = users.filter(user => !user.bot);
+
+                    console.log('Valid users count:', validUsers.size);
+
+                    if (validUsers.size > 0) {
+                        const winner = validUsers.random();
+                        console.log('Selected winner:', winner.tag);
+
+                        const endEmbed = new EmbedBuilder()
+                            .setTitle('🎉 Giveaway Ended! 🎉')
+                            .setDescription(`Prize: ${prize}`)
+                            .addFields(
+                                { name: 'Winner', value: winner.toString() },
+                                { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
+                                { name: 'Hosted By', value: `${interaction.user}`, inline: true }
+                            )
+                            .setColor('#00FF00');
+
+                        if (roleReward) {
+                            endEmbed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
+                        }
+
+                        if (coinReward) {
+                            endEmbed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
+                        }
+
+                        await fetchedMessage.edit({ embeds: [endEmbed] });
+                        await channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
+                        
+                        if (roleReward) {
+                            try {
+                                const member = await interaction.guild.members.fetch(winner.id);
+                                await member.roles.add(roleReward);
+                                await channel.send(`${winner} has been given the ${roleReward} role!`);
+                            } catch (error) {
+                                console.error('Failed to add role:', error);
+                                await channel.send('There was an error giving the role reward. Please contact an administrator.');
+                            }
+                        }
+                        
+                        if (coinReward) {
+                            try {
+                                await User.findOneAndUpdate(
+                                    { userId: winner.id, guildId: interaction.guild.id },
+                                    { $inc: { balance: coinReward } },
+                                    { upsert: true, new: true }
+                                );
+                                await channel.send(`${winner} has been awarded ${coinReward} coins!`);
+                            } catch (error) {
+                                console.error('Failed to add coins:', error);
+                                await channel.send('There was an error giving the coin reward. Please contact an administrator.');
+                            }
+                        }
+
+                        setTimeout(() => {
+                            channel.send('The giveaway has concluded. Thank you all for participating!');
+                        }, 20000);
+                    } else {
+                        console.log('No valid users found');
+                        await channel.send('No valid entries for the giveaway.');
+                    }
+                } catch (error) {
+                    console.error('Error ending giveaway:', error);
+                    await channel.send('There was an error ending the giveaway. Please contact an administrator.');
+                }
+            }, duration);
+
+        } catch (error) {
+            console.error('Error in setgiveaway command:', error);
+            await interaction.editReply({ content: 'There was an error setting up the giveaway.', ephemeral: true });
+        }
     },
 };
