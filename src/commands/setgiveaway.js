@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const ms = require('ms');
+const User = require('../../models/User');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,24 +21,24 @@ module.exports = {
         .addRoleOption(option =>
             option.setName('role_reward')
                 .setDescription('Role to be given as a reward (optional)'))
-        .addStringOption(option =>
-            option.setName('binance_reward')
-                .setDescription('Binance reward for the giveaway (optional)'))
+        .addIntegerOption(option =>
+            option.setName('coin_reward')
+                .setDescription('Coin reward for the giveaway (optional)'))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
     async execute(interaction) {
-        try {
-            await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ ephemeral: true });
 
+        try {
             const prize = interaction.options.getString('prize');
             const durationString = interaction.options.getString('duration');
             const channel = interaction.options.getChannel('channel');
             const roleReward = interaction.options.getRole('role_reward');
-            const binanceReward = interaction.options.getString('binance_reward');
+            const coinReward = interaction.options.getInteger('coin_reward');
 
             const duration = ms(durationString);
             if (!duration || isNaN(duration)) {
-                return await interaction.editReply({ content: 'Please provide a valid duration!', ephemeral: true });
+                return await interaction.editReply('Please provide a valid duration!');
             }
 
             const endTime = Date.now() + duration;
@@ -47,30 +48,18 @@ module.exports = {
                 .setDescription(`Prize: ${prize}`)
                 .addFields(
                     { name: 'Ends At', value: `<t:${Math.floor(endTime / 1000)}:R>`, inline: true },
-                    { name: 'Hosted By', value: `${interaction.user}`, inline: true }
+                    { name: 'Hosted By', value: interaction.user.toString(), inline: true }
                 )
                 .setColor('#FF0000');
 
-            if (roleReward) {
-                embed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
-            }
+            if (roleReward) embed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
+            if (coinReward) embed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
 
-            if (binanceReward) {
-                embed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
-            }
+            const message = await channel.send({ embeds: [embed] });
+            await message.react('🎉');
 
-            const button = new ButtonBuilder()
-                .setCustomId('enter_giveaway')
-                .setLabel('Enter Giveaway')
-                .setStyle(ButtonStyle.Primary);
+            await interaction.editReply(`Giveaway started in ${channel}!`);
 
-            const row = new ActionRowBuilder().addComponents(button);
-
-            const message = await channel.send({ embeds: [embed], components: [row] });
-
-            await interaction.editReply({ content: `Giveaway started in ${channel}!`, ephemeral: true });
-
-            // Schedule giveaway end
             setTimeout(async () => {
                 try {
                     const fetchedMessage = await channel.messages.fetch(message.id);
@@ -84,29 +73,23 @@ module.exports = {
                     const users = await reaction.users.fetch();
                     const validUsers = users.filter(user => !user.bot);
 
-                    const endEmbed = new EmbedBuilder()
-                        .setTitle('🎉 Giveaway Ended! 🎉')
-                        .setDescription(`Prize: ${prize}`)
-                        .addFields(
-                            { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
-                            { name: 'Hosted By', value: `${interaction.user}`, inline: true }
-                        )
-                        .setColor('#00FF00');
-
-                    if (roleReward) {
-                        endEmbed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
-                    }
-
-                    if (binanceReward) {
-                        endEmbed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
-                    }
-
                     if (validUsers.size > 0) {
                         const winner = validUsers.random();
-                        endEmbed.addFields({ name: 'Winner', value: winner.toString() });
 
-                        await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
+                        const endEmbed = new EmbedBuilder()
+                            .setTitle('🎉 Giveaway Ended! 🎉')
+                            .setDescription(`Prize: ${prize}`)
+                            .addFields(
+                                { name: 'Winner', value: winner.toString() },
+                                { name: 'Ended', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true },
+                                { name: 'Hosted By', value: interaction.user.toString(), inline: true }
+                            )
+                            .setColor('#00FF00');
 
+                        if (roleReward) endEmbed.addFields({ name: 'Role Reward', value: roleReward.toString(), inline: true });
+                        if (coinReward) endEmbed.addFields({ name: 'Coin Reward', value: coinReward.toString(), inline: true });
+
+                        await fetchedMessage.edit({ embeds: [endEmbed] });
                         await channel.send(`Congratulations ${winner}! You won the giveaway for ${prize}!`);
                         
                         if (roleReward) {
@@ -120,18 +103,25 @@ module.exports = {
                             }
                         }
                         
-                        if (binanceReward) {
-                            await channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
+                        if (coinReward) {
+                            try {
+                                await User.findOneAndUpdate(
+                                    { userId: winner.id, guildId: interaction.guild.id },
+                                    { $inc: { balance: coinReward } },
+                                    { upsert: true, new: true }
+                                );
+                                await channel.send(`${winner} has been awarded ${coinReward} coins!`);
+                            } catch (error) {
+                                console.error('Failed to add coins:', error);
+                                await channel.send('There was an error giving the coin reward. Please contact an administrator.');
+                            }
                         }
 
-                        // Add a 20-second delay before sending the final message
                         setTimeout(() => {
                             channel.send('The giveaway has concluded. Thank you all for participating!');
                         }, 20000);
                     } else {
-                        endEmbed.addFields({ name: 'Winner', value: 'No winner' });
-                        await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
-                        await channel.send('No one entered the giveaway.');
+                        await channel.send('No valid entries for the giveaway.');
                     }
                 } catch (error) {
                     console.error('Error ending giveaway:', error);
@@ -141,11 +131,7 @@ module.exports = {
 
         } catch (error) {
             console.error('Error in setgiveaway command:', error);
-            if (interaction.deferred) {
-                await interaction.editReply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
-            } else {
-                await interaction.reply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
-            }
+            await interaction.editReply('There was an error setting up the giveaway.');
         }
     },
 };
