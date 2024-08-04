@@ -34,6 +34,7 @@ module.exports = {
             const channel = interaction.options.getChannel('channel');
             const roleReward = interaction.options.getRole('role_reward');
             const binanceReward = interaction.options.getString('binance_reward');
+            console.log('Binance Reward:', binanceReward);
 
             const duration = ms(durationString);
             if (!duration || isNaN(duration)) {
@@ -56,7 +57,7 @@ module.exports = {
             }
 
             if (binanceReward) {
-                embed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
+                embed.addFields({ name: '🪙 Binance Reward 🪙', value: binanceReward, inline: false });
             }
 
             const button = new ButtonBuilder()
@@ -70,19 +71,27 @@ module.exports = {
 
             await interaction.editReply({ content: `Giveaway started in ${channel}!`, ephemeral: true });
 
+            const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: duration });
+
+            const participants = new Set();
+
+            collector.on('collect', async (i) => {
+                if (i.customId === 'enter_giveaway') {
+                    await i.deferUpdate();
+                    participants.add(i.user.id);
+                    await i.followUp({ content: 'You have entered the giveaway!', ephemeral: true });
+                }
+            });
+
             // Schedule giveaway end
             setTimeout(async () => {
                 try {
                     const fetchedMessage = await channel.messages.fetch(message.id);
-                    const reaction = fetchedMessage.reactions.cache.get('🎉');
                     
-                    if (!reaction || reaction.count <= 1) {
+                    if (participants.size === 0) {
                         await channel.send('No one entered the giveaway.');
                         return;
                     }
-
-                    const users = await reaction.users.fetch();
-                    const validUsers = users.filter(user => !user.bot);
 
                     const endEmbed = new EmbedBuilder()
                         .setTitle('🎉 Giveaway Ended! 🎉')
@@ -98,11 +107,12 @@ module.exports = {
                     }
 
                     if (binanceReward) {
-                        endEmbed.addFields({ name: 'Binance Reward', value: binanceReward, inline: true });
+                        endEmbed.addFields({ name: '🪙 Binance Reward 🪙', value: binanceReward, inline: false });
                     }
 
-                    if (validUsers.size > 0) {
-                        const winner = validUsers.random();
+                    if (participants.size > 0) {
+                        const winnerId = Array.from(participants)[Math.floor(Math.random() * participants.size)];
+                        const winner = await interaction.client.users.fetch(winnerId);
                         endEmbed.addFields({ name: 'Winner', value: winner.toString() });
 
                         await fetchedMessage.edit({ embeds: [endEmbed], components: [] });
@@ -121,7 +131,7 @@ module.exports = {
                         }
                         
                         if (binanceReward) {
-                            await channel.send(`${winner} also won ${binanceReward} in Binance rewards!`);
+                            await channel.send(`🎊 ${winner} also won ${binanceReward} in Binance rewards! 🎊`);
                         }
 
                         // Add a 20-second delay before sending the final message
@@ -141,10 +151,11 @@ module.exports = {
 
         } catch (error) {
             console.error('Error in setgiveaway command:', error);
+            const errorMessage = 'There was an error while setting up the giveaway.';
             if (interaction.deferred) {
-                await interaction.editReply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+                await interaction.editReply({ content: errorMessage, ephemeral: true }).catch(console.error);
             } else {
-                await interaction.reply({ content: 'There was an error while setting up the giveaway.', ephemeral: true }).catch(console.error);
+                await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
             }
         }
     },
