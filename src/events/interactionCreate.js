@@ -50,8 +50,8 @@ async function handleError(interaction, error) {
         : 'There was an error while executing this command!';
     
     if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: errorMessage, ephemeral: true });
+        await interaction.followUp({ content: errorMessage, ephemeral: true }).catch(console.error);
     } else {
-        await interaction.reply({ content: errorMessage, ephemeral: true });
+        await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
     }
 }
