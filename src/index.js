@@ -1,9 +1,22 @@
+const express = require('express');
 const { Client, IntentsBitField, Partials, ChannelType, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 const TicketConfig = require('../models/TicketConfig');
+
+// Express server setup
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is alive!');
+});
+
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});
 
 const clientId = process.env.CLIENT_ID;
 const token = process.env.BOT_TOKEN;
